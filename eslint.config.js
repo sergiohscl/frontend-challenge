@@ -6,6 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
+  {
+    ignores: ["dist/**", "public/mockServiceWorker.js"],
+  },
   globalIgnores(['dist']),
   {
    files: ['src/components/ui/**/*.{ts,tsx}'],
