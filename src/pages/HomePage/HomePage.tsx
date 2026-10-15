@@ -1,21 +1,24 @@
+
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 import { HeroBanner } from "@/components/HeroBanner/HeroBanner";
 import { Products } from "@/components/Products/Products";
+import { MobileFilters } from "@/components/Products/MobileFilters";
 import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
 import { MobileSearchBar } from "@/components/layout/MobileSearchBar/MobileSearchBar";
-import { useState } from "react";
-import { MobileFilters } from "@/components/Products/MobileFilters";
 import { MobileTabBar } from "@/components/layout/MobileTabBar/MobileTabBar";
 import { Promos } from "@/components/Promos/Promos";
 import { Blog } from "@/components/Blog/Blog";
 import { Footer } from "@/components/Footer/Footer";
-import type { PriceRange } from "@/types/priceFilter.types";
 
 import { nftService } from "@/services/nftService";
 import { nftToProduct } from "@/lib/adapters/nftAdapter";
 
+import type { Product } from "@/types/product.types";
 import type { FeaturedNFT } from "@/types/featuredNFT.types";
+import type { PriceRange } from "@/types/priceFilter.types";
 
 const featuredNFT: FeaturedNFT = {
   id: "featured-sage-nomad",
@@ -36,6 +39,17 @@ export function HomePage() {
     min: 0.02,
     max: 12.3,
   });
+
+  const navigate = useNavigate();
+
+  function handleProductClick(product: Product) {
+    void navigate({
+      to: "/nft/$id",
+      params: {
+        id: String(product.id),
+      },
+    });
+  }
 
   const {
     data: nfts = [],
@@ -102,7 +116,10 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => void refetch()}
-                className="rounded-md bg-primary px-6 py-2 font-mono font-bold text-background"
+                className="
+                  rounded-md bg-primary px-6 py-2
+                  font-mono font-bold text-background
+                "
               >
                 Tentar novamente
               </button>
@@ -117,6 +134,7 @@ export function HomePage() {
               onNetworkChange={setSelectedNetwork}
               priceRange={priceRange}
               onPriceApply={setPriceRange}
+              onProductClick={handleProductClick}
             />
           )}
 

@@ -7,8 +7,9 @@ import {
 } from "@tanstack/react-router"
 
 import { HomePage } from "@/pages/HomePage/HomePage"
-import { NFTDetailsPage } from "@/pages/NFTDetailsPage"
+import { NFTDetailsPage } from "@/pages/NFTDetailsPage/NFTDetailsPage";
 import { CartPage } from "@/pages/CartPage"
+
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -22,7 +23,7 @@ const homeRoute = createRoute({
 
 const nftDetailsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/nft/$nftId",
+  path: "/nft/$id",
   component: NFTDetailsPage,
 })
 
