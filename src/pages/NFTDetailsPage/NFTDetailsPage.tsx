@@ -75,7 +75,7 @@ export function NFTDetailsPage() {
               <NFTDetails
                 title={nft.name}
                 price={nft.price}
-                description="Colecionável digital da coleção selecionada."
+                description={nft.description}
                 tokenId={String(nft.id)}
                 collection={nft.collection ?? "Coleção não informada"}
                 attributes={[]}
