@@ -1,3 +1,4 @@
+
 import { useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -7,6 +8,7 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
 import { Footer } from "@/components/Footer/Footer";
 import { NFTGallery } from "@/components/NFTGallery/NFTGallery";
 import { NFTDetails } from "@/components/NFTDetails/NFTDetails";
+import { NFTDescription } from "@/components/NFTDescription/NFTDescription";
 
 export function NFTDetailsPage() {
   const { id } = useParams({
@@ -27,7 +29,7 @@ export function NFTDetailsPage() {
     <div className="min-h-screen bg-[#140D0A]">
       <DesktopHeader />
 
-      <main className="mx-auto w-full max-w-350 px-4 py-6 lg:px-6">
+      <main className="mx-auto w-full max-w-300 px-4 py-6 lg:px-0">
         {/* Breadcrumb */}
         <nav
           aria-label="Navegação estrutural"
@@ -58,30 +60,47 @@ export function NFTDetailsPage() {
 
         {/* Conteúdo */}
         {nft && (
-          <div
-            className="
-              grid grid-cols-1 items-start gap-8
-              xl:grid-cols-[572px_minmax(0,1fr)]
-            "
-          >
-            {/* Galeria */}
-            <NFTGallery
-              images={[nft.image]}
-              title={nft.name}
-            />
+          <div className="w-full min-w-0">
+            {/* Galeria e detalhes */}
+            <div
+              className="
+                grid grid-cols-1 items-start gap-8
+                xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]
+              "
+            >
+              {/* Galeria */}
+              <div className="min-w-0">
+                <NFTGallery
+                  images={[nft.image]}
+                  title={nft.name}
+                />
+              </div>
 
-            {/* Detalhes */}
-            <div className="min-w-0">
-              <NFTDetails
-                title={nft.name}
-                price={nft.price}
-                description={nft.description}
-                tokenId={String(nft.id)}
-                collection={nft.collection ?? "Coleção não informada"}
-                attributes={[]}
-                editions={[]}
-              />
+              {/* Detalhes */}
+              <div className="min-w-0">
+                <NFTDetails
+                  title={nft.name}
+                  price={nft.price}
+                  description={nft.description}
+                  tokenId={String(nft.id)}
+                  collection={
+                    nft.collection ?? "Coleção não informada"
+                  }
+                  attributes={[]}
+                  editions={[]}
+                />
+              </div>
             </div>
+
+            {/* Descrição completa */}
+            <section className="mt-10 w-full min-w-0">
+              <NFTDescription
+                description={nft.description}
+                network={nft.network}
+                contract="0x7A42...19E8 • Contrato inteligente ERC-721 verificado."
+                royalties="Direitos autorais do criador: 5% nas vendas secundárias, pagos automaticamente pelos mercados compatíveis."
+              />
+            </section>
           </div>
         )}
       </main>
