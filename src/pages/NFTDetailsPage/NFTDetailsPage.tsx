@@ -1,5 +1,4 @@
-
-import { useParams } from "@tanstack/react-router";
+import { useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { nftService } from "@/services/nftService";
@@ -9,12 +8,16 @@ import { Footer } from "@/components/Footer/Footer";
 import { NFTGallery } from "@/components/NFTGallery/NFTGallery";
 import { NFTDetails } from "@/components/NFTDetails/NFTDetails";
 import { NFTDescription } from "@/components/NFTDescription/NFTDescription";
+import { RelatedProducts } from "@/components/RelatedProducts/RelatedProducts";
 
 export function NFTDetailsPage() {
   const { id } = useParams({
     from: "/nft/$id",
   });
 
+  const navigate = useNavigate();
+
+  // NFT selecionado
   const {
     data: nft,
     isPending,
@@ -24,6 +27,22 @@ export function NFTDetailsPage() {
     queryFn: () => nftService.getById(id),
     enabled: Boolean(id),
   });
+
+  // Lista de NFTs
+  const { data: allNFTs = [] } = useQuery({
+    queryKey: ["nfts"],
+    queryFn: nftService.getAll,
+  });
+
+  // NFTs da mesma coleção, excluindo o atual
+  const relatedNFTs = nft ? allNFTs.filter((item) => item.id !== nft.id) : [];
+
+  const handleRelatedProductClick = (productId: string) => {
+    void navigate({
+      to: "/nft/$id",
+      params: { id: productId },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#140D0A]">
@@ -70,10 +89,7 @@ export function NFTDetailsPage() {
             >
               {/* Galeria */}
               <div className="min-w-0">
-                <NFTGallery
-                  images={[nft.image]}
-                  title={nft.name}
-                />
+                <NFTGallery images={[nft.image]} title={nft.name} />
               </div>
 
               {/* Detalhes */}
@@ -83,9 +99,7 @@ export function NFTDetailsPage() {
                   price={nft.price}
                   description={nft.description}
                   tokenId={String(nft.id)}
-                  collection={
-                    nft.collection ?? "Coleção não informada"
-                  }
+                  collection={nft.collection ?? "Coleção não informada"}
                   attributes={[]}
                   editions={[]}
                 />
@@ -101,6 +115,16 @@ export function NFTDetailsPage() {
                 royalties="Direitos autorais do criador: 5% nas vendas secundárias, pagos automaticamente pelos mercados compatíveis."
               />
             </section>
+
+            {/* Mais desta coleção */}
+            {relatedNFTs.length > 0 && (
+              <section className="mt-12 w-full min-w-0">
+                <RelatedProducts
+                  products={relatedNFTs}
+                  onProductClick={handleRelatedProductClick}
+                />
+              </section>
+            )}
           </div>
         )}
       </main>
