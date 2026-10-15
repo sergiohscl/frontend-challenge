@@ -7,6 +7,7 @@ import { MobileSearchBar } from "@/components/layout/MobileSearchBar/MobileSearc
 import { useState } from "react";
 import { MobileFilters } from "@/components/Products/MobileFilters";
 import { MobileTabBar } from "@/components/layout/MobileTabBar/MobileTabBar";
+import { Promos } from "@/components/Promos/Promos";
 import type { PriceRange } from "@/types/priceFilter.types";
 
 import { nftService } from "@/services/nftService";
@@ -116,10 +117,14 @@ export function HomePage() {
               onPriceApply={setPriceRange}
             />
           )}
+
+          <div className="mt-12 lg:mt-20">
+            <Promos />
+          </div>
         </div>
       </main>
 
-      <MobileTabBar/>
+      <MobileTabBar />
     </div>
   );
 }

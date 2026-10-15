@@ -76,7 +76,7 @@ export function HeroBanner({
                 font-mono text-xs leading-4
                 font-medium text-text-primary
                 md:mb-2 md:text-sm
-                md:tracking-[0.1em]
+                md:tracking-widest
               "
             >
               {eyebrow}
@@ -93,19 +93,14 @@ export function HeroBanner({
           >
             <span className="md:hidden">
               SEJA DONO DA
-              <span className="block">
-                CULTURA DIGITAL
-              </span>
+              <span className="block">CULTURA DIGITAL</span>
             </span>
 
             <span className="hidden md:block">
-              {title ===
-              "SEJA DONO DO FUTURO DA ARTE DIGITAL" ? (
+              {title === "SEJA DONO DO FUTURO DA ARTE DIGITAL" ? (
                 <>
                   SEJA DONO DO FUTURO
-                  <span className="block">
-                    DA ARTE DIGITAL
-                  </span>
+                  <span className="block">DA ARTE DIGITAL</span>
                 </>
               ) : (
                 title
@@ -124,13 +119,10 @@ export function HeroBanner({
               "
             >
               <span className="md:hidden">
-                Descubra NFTs selecionados de
-                criadores do mundo todo.
+                Descubra NFTs selecionados de criadores do mundo todo.
               </span>
 
-              <span className="hidden md:inline">
-                {description}
-              </span>
+              <span className="hidden md:inline">{description}</span>
             </p>
           )}
 
@@ -153,10 +145,7 @@ export function HeroBanner({
             >
               {buttonText}
 
-              <span
-                aria-hidden="true"
-                className="md:hidden"
-              >
+              <span aria-hidden="true" className="md:hidden">
                 →
               </span>
             </button>
@@ -175,10 +164,7 @@ export function HeroBanner({
         >
           <picture className="block h-full w-full">
             {imageMobile && (
-              <source
-                media="(max-width: 767px)"
-                srcSet={imageMobile}
-              />
+              <source media="(max-width: 767px)" srcSet={imageMobile} />
             )}
 
             <img
