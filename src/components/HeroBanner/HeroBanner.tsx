@@ -1,4 +1,3 @@
-
 import type { HeroBannerProps } from "../../types/heroBanner.types";
 
 export function HeroBanner({
@@ -15,7 +14,7 @@ export function HeroBanner({
     <section
       aria-label="Destaque principal"
       className="
-        relative isolate h-[190px] w-full
+        relative isolate h-47.5 w-full
         overflow-hidden rounded-xl
         bg-[#241612]
         md:h-96 md:rounded-none md:bg-background
@@ -39,8 +38,8 @@ export function HeroBanner({
         aria-hidden="true"
         className="
           pointer-events-none absolute
-          -top-[10px] left-[73px]
-          size-[248px] rounded-full
+          -top-2.5 left-18.25
+          size-62 rounded-full
           bg-linear-to-br
           from-[#DD9A5F]/37
           to-[#D28A4C]/0
@@ -52,8 +51,8 @@ export function HeroBanner({
         aria-hidden="true"
         className="
           pointer-events-none absolute
-          -top-[31px] -left-[80px]
-          size-[248px] rounded-full
+          -top-7.75 -left-20
+          size-62 rounded-full
           bg-linear-to-br
           from-[#DD9A5F]/43
           to-[#D28A4C]/4
@@ -88,8 +87,8 @@ export function HeroBanner({
             className="
               font-mono text-base leading-6
               font-bold text-[#F5F1EB]
-              md:max-w-[600px]
-              md:text-[43px] md:leading-[70px]
+              md:max-w-150
+              md:text-[43px] md:leading-17.5
             "
           >
             <span className="md:hidden">
@@ -117,10 +116,10 @@ export function HeroBanner({
           {description && (
             <p
               className="
-                max-w-[188px] font-mono
-                text-xs leading-[18px]
+                max-w-47 font-mono
+                text-xs leading-4.5
                 text-[#CFB28C]
-                md:mt-0 md:max-w-[557px]
+                md:mt-0 md:max-w-139.25
                 md:text-sm md:leading-6
               "
             >
@@ -141,7 +140,7 @@ export function HeroBanner({
               onClick={onButtonClick}
               className="
                 flex w-fit items-center gap-2
-                font-mono text-xs leading-[14px]
+                font-mono text-xs leading-3.5
                 font-bold text-[#E89B55]
                 transition-colors
                 hover:text-primary-hover
@@ -168,7 +167,7 @@ export function HeroBanner({
         <div
           className="
             absolute top-2 right-4
-            h-[118px] w-[38%]
+            h-29.5 w-[38%]
             overflow-hidden rounded-xl
             md:top-0 md:right-0
             md:h-full md:w-[35%]
