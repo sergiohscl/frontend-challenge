@@ -21,7 +21,7 @@ export function NFTDescription({
   >("details");
 
   return (
-   <section className="w-full min-w-0">
+   <section className="mt-10 hidden w-full min-w-0 lg:block">
       {/* Tabs */}
       <div className="flex gap-6 overflow-x-auto border-b border-primary">
         <button

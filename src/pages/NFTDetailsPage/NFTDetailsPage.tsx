@@ -10,6 +10,8 @@ import { NFTDetails } from "@/components/NFTDetails/NFTDetails";
 import { NFTDescription } from "@/components/NFTDescription/NFTDescription";
 import { RelatedProducts } from "@/components/RelatedProducts/RelatedProducts";
 
+import { NFTMobileDetails } from "@/components/NFTMobileDetails/NFTMobileDetails";
+
 export function NFTDetailsPage() {
   const { id } = useParams({
     from: "/nft/$id",
@@ -80,10 +82,21 @@ export function NFTDetailsPage() {
         {/* Conteúdo */}
         {nft && (
           <div className="w-full min-w-0">
+            {/* Versão mobile */}
+            <div className="lg:hidden">
+              <NFTMobileDetails
+                nft={nft}
+                onBack={() => {
+                  void navigate({ to: "/" });
+                }}
+              />
+            </div>
+
             {/* Galeria e detalhes */}
-            <div
+           <div
               className="
-                grid grid-cols-1 items-start gap-8
+                hidden grid-cols-1 items-start gap-8
+                lg:grid
                 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]
               "
             >

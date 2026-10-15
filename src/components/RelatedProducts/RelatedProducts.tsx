@@ -28,7 +28,7 @@ export function RelatedProducts({
   }
 
   return (
-    <section className="w-full min-w-0">
+    <section className="mt-12 hidden w-full min-w-0 lg:block">
       {/* Section heading */}
       <div className="flex flex-col gap-3">
         <h2 className="text-[17px] leading-4 font-bold text-[#EB9855]">
