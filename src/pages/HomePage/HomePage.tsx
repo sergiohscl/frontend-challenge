@@ -4,6 +4,9 @@ import { HeroBanner } from "@/components/HeroBanner/HeroBanner";
 import { Products } from "@/components/Products/Products";
 import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
 import { MobileSearchBar } from "@/components/layout/MobileSearchBar/MobileSearchBar";
+import { useState } from "react";
+import { MobileFilters } from "@/components/Products/MobileFilters";
+import type { PriceRange } from "@/types/priceFilter.types";
 
 import { nftService } from "@/services/nftService";
 import { nftToProduct } from "@/lib/adapters/nftAdapter";
@@ -19,6 +22,17 @@ const featuredNFT: FeaturedNFT = {
 };
 
 export function HomePage() {
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(
+    null,
+  );
+
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+
+  const [priceRange, setPriceRange] = useState<PriceRange>({
+    min: 0.02,
+    max: 12.3,
+  });
+
   const {
     data: nfts = [],
     isPending,
@@ -35,7 +49,18 @@ export function HomePage() {
     <div className="min-h-screen bg-background">
       <DesktopHeader />
 
-      <MobileSearchBar />
+      <MobileSearchBar
+        filtersButton={
+          <MobileFilters
+            variant="icon"
+            selectedCollection={selectedCollection}
+            onCollectionChange={setSelectedCollection}
+            selectedNetwork={selectedNetwork}
+            onNetworkChange={setSelectedNetwork}
+            onPriceApply={setPriceRange}
+          />
+        }
+      />
 
       <main className="mx-auto w-full max-w-300 px-6 py-8 lg:px-0">
         <HeroBanner
@@ -79,7 +104,16 @@ export function HomePage() {
               </button>
             </div>
           ) : (
-            <Products products={products} featuredNFT={featuredNFT} />
+            <Products
+              products={products}
+              featuredNFT={featuredNFT}
+              selectedCollection={selectedCollection}
+              onCollectionChange={setSelectedCollection}
+              selectedNetwork={selectedNetwork}
+              onNetworkChange={setSelectedNetwork}
+              priceRange={priceRange}
+              onPriceApply={setPriceRange}
+            />
           )}
         </div>
       </main>

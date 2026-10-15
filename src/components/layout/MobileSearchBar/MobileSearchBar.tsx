@@ -1,13 +1,16 @@
 import { useState } from "react";
+import { Search } from "lucide-react";
+
+import type { ReactNode } from "react";
 
 type MobileSearchBarProps = {
   onSearch?: (query: string) => void;
-  onOpenFilters?: () => void;
+  filtersButton?: ReactNode;
 };
 
 export function MobileSearchBar({
   onSearch,
-  onOpenFilters,
+  filtersButton,
 }: MobileSearchBarProps) {
   const [query, setQuery] = useState("");
 
@@ -15,15 +18,20 @@ export function MobileSearchBar({
     <div className="flex items-center gap-2 px-4 py-4 lg:hidden">
       <form
         role="search"
-        className="flex flex-1 items-center gap-2 rounded-xl bg-surface px-3 py-3"
+        className="
+          flex min-w-0 flex-1 items-center gap-2
+          rounded-xl bg-surface px-3 py-3
+        "
         onSubmit={(event) => {
           event.preventDefault();
           onSearch?.(query.trim());
         }}
       >
-        <span aria-hidden="true" className="text-primary">
-          ⌕
-        </span>
+        <Search
+          size={18}
+          aria-hidden="true"
+          className="shrink-0 text-primary"
+        />
 
         <input
           type="search"
@@ -31,18 +39,15 @@ export function MobileSearchBar({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Explorar coleções"
           aria-label="Pesquisar coleções"
-          className="w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
+          className="
+            min-w-0 w-full bg-transparent
+            text-sm text-text-primary
+            outline-none placeholder:text-text-muted
+          "
         />
       </form>
 
-      <button
-        type="button"
-        onClick={onOpenFilters}
-        aria-label="Abrir filtros"
-        className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-background"
-      >
-        ☷
-      </button>
+      {filtersButton}
     </div>
   );
 }

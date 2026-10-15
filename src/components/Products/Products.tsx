@@ -4,7 +4,6 @@ import { ProductsSidebar } from "./ProductsSidebar";
 import { ProductsToolbar } from "./ProductsToolbar";
 import { ProductGrid } from "./ProductGrid";
 import { Pagination } from "./Pagination";
-import { MobileFilters } from "./MobileFilters";
 
 import type { Product } from "../../types/product.types";
 import type { FeaturedNFT } from "../../types/featuredNFT.types";
@@ -18,14 +17,18 @@ type ProductsProps = {
   products: Product[];
   featuredNFT?: FeaturedNFT;
   onProductClick?: (product: Product) => void;
+
+  selectedCollection: string | null;
+  onCollectionChange: (collection: string | null) => void;
+
+  selectedNetwork: string | null;
+  onNetworkChange: (network: string | null) => void;
+
+  priceRange: PriceRange;
+  onPriceApply: (range: PriceRange) => void;
 };
 
 const ITEMS_PER_PAGE = 9;
-
-const INITIAL_PRICE_RANGE: PriceRange = {
-  min: 0.02,
-  max: 12.3,
-};
 
 function normalizeFilterValue(value: string): string {
   return value
@@ -40,24 +43,20 @@ export function Products({
   products,
   featuredNFT,
   onProductClick,
+  selectedCollection,
+  onCollectionChange,
+  selectedNetwork,
+  onNetworkChange,
+  priceRange,
+  onPriceApply,
 }: ProductsProps) {
   const [activeTab, setActiveTab] = useState<ProductTab>("all");
-  const [sortBy, setSortBy] = useState<ProductSort>("recent");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [selectedCollection, setSelectedCollection] = useState<string | null>(
-    null,
-  );
-
-  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
-
-  const [priceRange, setPriceRange] = useState<PriceRange>(INITIAL_PRICE_RANGE);
+  const [sortBy, setSortBy] = useState<ProductSort>("default");
 
   // Filtros e ordenação
   const visibleProducts = useMemo(() => {
     let result = [...products];
 
-    // Coleção
     if (selectedCollection) {
       result = result.filter(
         (product) =>
@@ -66,7 +65,6 @@ export function Products({
       );
     }
 
-    // Rede
     if (selectedNetwork) {
       result = result.filter(
         (product) =>
@@ -75,13 +73,11 @@ export function Products({
       );
     }
 
-    // Faixa de preço
     result = result.filter(
       (product) =>
         product.price >= priceRange.min && product.price <= priceRange.max,
     );
 
-    // Abas
     if (activeTab === "new") {
       result = result.filter((product) => Boolean(product.createdAt));
     }
@@ -90,16 +86,11 @@ export function Products({
       result = result.filter((product) => product.isTrending === true);
     }
 
-    // Ordenação
     if (sortBy === "price-asc") {
       result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sortBy === "price-desc") {
+    } else if (sortBy === "price-desc") {
       result.sort((a, b) => b.price - a.price);
-    }
-
-    if (sortBy === "recent") {
+    } else if (sortBy === "recent") {
       result.sort((a, b) => {
         const dateA = a.createdAt ? Date.parse(a.createdAt) || 0 : 0;
 
@@ -109,56 +100,77 @@ export function Products({
       });
     }
 
+    // "default" mantém a ordem recebida da API.
+
     return result;
   }, [
     products,
     selectedCollection,
     selectedNetwork,
-    priceRange,
+    priceRange.min,
+    priceRange.max,
     activeTab,
     sortBy,
   ]);
 
-  // Paginação
+  // Paginação utilizada apenas no desktop
   const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
 
-  const safeCurrentPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+  const filterKey = [
+    selectedCollection ?? "",
+    selectedNetwork ?? "",
+    priceRange.min,
+    priceRange.max,
+  ].join("|");
 
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const [paginationState, setPaginationState] = useState({
+    filterKey,
+    page: 1,
+  });
+
+  const effectiveCurrentPage =
+    paginationState.filterKey === filterKey ? paginationState.page : 1;
+
+  const resolvedCurrentPage = Math.max(
+    1,
+    Math.min(effectiveCurrentPage, totalPages || 1),
+  );
+
+  const displayedProducts = useMemo(() => {
+    const startIndex = (resolvedCurrentPage - 1) * ITEMS_PER_PAGE;
 
     return visibleProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [visibleProducts, safeCurrentPage]);
-
-  function handleCollectionChange(collection: string | null) {
-    setSelectedCollection(collection);
-    setCurrentPage(1);
-  }
-
-  function handleNetworkChange(network: string | null) {
-    setSelectedNetwork(network);
-    setCurrentPage(1);
-  }
-
-  function handlePriceApply(range: PriceRange) {
-    setPriceRange({ ...range });
-    setCurrentPage(1);
-  }
+  }, [visibleProducts, resolvedCurrentPage]);
 
   function handleTabChange(tab: ProductTab) {
     setActiveTab(tab);
-    setCurrentPage(1);
+    setPaginationState({ filterKey, page: 1 });
   }
 
   function handleSortChange(sort: ProductSort) {
     setSortBy(sort);
-    setCurrentPage(1);
+    setPaginationState({ filterKey, page: 1 });
   }
 
   function handlePageChange(page: number) {
     if (page < 1 || page > totalPages) return;
 
-    setCurrentPage(page);
+    setPaginationState({ filterKey, page });
+  }
+
+  function handleCollectionChange(collection: string | null) {
+    onCollectionChange(collection);
+    setPaginationState({ filterKey, page: 1 });
+  }
+
+  function handleNetworkChange(network: string | null) {
+    onNetworkChange(network);
+    setPaginationState({ filterKey, page: 1 });
+  }
+
+  function handlePriceApply(range: PriceRange) {
+    onPriceApply(range);
+    setPaginationState({ filterKey, page: 1 });
   }
 
   return (
@@ -180,16 +192,7 @@ export function Products({
         </div>
 
         {/* Conteúdo principal */}
-        <div className="flex min-w-0 flex-1 flex-col gap-8">
-          {/* Filtros mobile */}
-          <MobileFilters
-            selectedCollection={selectedCollection}
-            onCollectionChange={handleCollectionChange}
-            selectedNetwork={selectedNetwork}
-            onNetworkChange={handleNetworkChange}
-            onPriceApply={handlePriceApply}
-          />
-
+        <div className="flex min-w-0 flex-1 flex-col gap-6 lg:gap-8">
           <ProductsToolbar
             activeTab={activeTab}
             onTabChange={handleTabChange}
@@ -203,15 +206,27 @@ export function Products({
             aria-labelledby={`nft-tab-${activeTab}`}
             className="flex flex-col lg:min-h-300"
           >
-            <ProductGrid
-              products={paginatedProducts}
-              onProductClick={onProductClick}
-            />
+            {/* Mobile: somente os NFTs da primeira página */}
+            <div className="lg:hidden">
+              <ProductGrid
+                products={visibleProducts.slice(0, ITEMS_PER_PAGE)}
+                onProductClick={onProductClick}
+              />
+            </div>
 
+            {/* Desktop: nove NFTs por página */}
+            <div className="hidden lg:block">
+              <ProductGrid
+                products={displayedProducts}
+                onProductClick={onProductClick}
+              />
+            </div>
+
+            {/* Paginação exclusiva do desktop */}
             {totalPages > 1 && (
-              <div className="mt-12 lg:mt-auto lg:pt-12">
+              <div className="mt-12 hidden lg:mt-auto lg:block lg:pt-12">
                 <Pagination
-                  currentPage={safeCurrentPage}
+                  currentPage={resolvedCurrentPage}
                   totalPages={totalPages}
                   onPageChange={handlePageChange}
                 />

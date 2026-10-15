@@ -1,6 +1,7 @@
 export type ProductTab = "all" | "new" | "trending";
 
 export type ProductSort =
+  | "default"
   | "recent"
   | "price-asc"
   | "price-desc";

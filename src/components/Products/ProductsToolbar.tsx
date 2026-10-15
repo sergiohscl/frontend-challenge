@@ -28,9 +28,9 @@ export function ProductsToolbar({
         role="tablist"
         aria-label="Categorias de NFTs"
         className="
-          flex w-full gap-5 overflow-x-auto
-          whitespace-nowrap
-          lg:w-auto lg:overflow-visible
+          flex w-full items-start gap-4
+          overflow-x-auto whitespace-nowrap
+          lg:w-auto lg:gap-5 lg:overflow-visible
         "
       >
         {tabs.map((tab) => {
@@ -47,13 +47,13 @@ export function ProductsToolbar({
               onClick={() => onTabChange(tab.id)}
               className={`
                 relative shrink-0
-                pb-3 font-mono text-[15px]
-                leading-4 font-medium
+                pb-1 font-mono text-sm leading-4
                 transition-colors
+                lg:pb-3 lg:text-[15px]
                 ${
                   isActive
-                    ? "text-[#E89B55]"
-                    : "text-[#F5F1EB] hover:text-[#E89B55]"
+                    ? "font-bold text-[#E89B55]"
+                    : "font-normal text-[#F5F1EB] hover:text-[#E89B55]"
                 }
               `}
             >
@@ -64,7 +64,7 @@ export function ProductsToolbar({
                   aria-hidden="true"
                   className="
                     absolute right-0 bottom-0 left-0
-                    h-0.5 bg-primary
+                    h-0.5 bg-[#D28A4C]
                   "
                 />
               )}
@@ -73,23 +73,19 @@ export function ProductsToolbar({
         })}
       </div>
 
-      {/* Ordenação */}
+      {/* Ordenação - apenas desktop */}
       <div
         className="
-          flex w-full items-center gap-1
-          font-mono text-[15px]
-          text-[#F5F1EB]
-          sm:w-auto
+          hidden items-center gap-1
+          font-mono text-[15px] text-[#F5F1EB]
+          lg:flex
         "
       >
-        <label
-          htmlFor="nft-sort"
-          className="shrink-0"
-        >
+        <label htmlFor="nft-sort" className="shrink-0">
           Ordenar por:
         </label>
 
-        <div className="relative min-w-0 flex-1 sm:flex-none">
+        <div className="relative min-w-0">
           <select
             id="nft-sort"
             value={sortBy}
@@ -97,29 +93,22 @@ export function ProductsToolbar({
               onSortChange(event.target.value as ProductSort)
             }
             className="
-              w-full cursor-pointer
-              appearance-none bg-transparent
-              py-1 pr-6 pl-1
-              font-mono text-[15px]
-              text-[#F5F1EB]
+              w-auto cursor-pointer appearance-none
+              bg-transparent py-1 pr-6 pl-1
+              font-mono text-[15px] text-[#F5F1EB]
               outline-none
               focus-visible:ring-2
               focus-visible:ring-primary
-              sm:w-auto
               [&>option]:bg-[#241612]
             "
           >
-            <option value="recent">
-              Listados recentemente
-            </option>
+            <option value="default">Destaques</option>
 
-            <option value="price-asc">
-              Menor preço
-            </option>
+            <option value="recent">Listados recentemente</option>
 
-            <option value="price-desc">
-              Maior preço
-            </option>
+            <option value="price-asc">Menor preço</option>
+
+            <option value="price-desc">Maior preço</option>
           </select>
 
           {/* Seta */}
