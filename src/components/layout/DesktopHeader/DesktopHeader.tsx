@@ -1,5 +1,5 @@
-
 import { LogIn, Search, ShoppingCart } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 const navigation = [
   { label: "Início", href: "/" },
@@ -9,9 +9,11 @@ const navigation = [
 ];
 
 export function DesktopHeader() {
+  const { cartCount } = useCart();
+
   return (
     <header className="hidden bg-background lg:block">
-     <div className="mx-auto flex h-11.25 w-full max-w-300 items-center justify-between border-b border-border-custom">
+      <div className="mx-auto flex h-11.25 w-full max-w-300 items-center justify-between border-b border-border-custom">
         {/* Logo */}
         <a
           href="/"
@@ -66,9 +68,11 @@ export function DesktopHeader() {
           >
             <ShoppingCart size={20} />
 
-            <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-background">
-              6
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-background">
+                {cartCount}
+              </span>
+            )}
           </a>
 
           <a

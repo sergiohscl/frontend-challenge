@@ -7,6 +7,7 @@ import { queryClient } from "@/lib/queryClient";
 import { router } from "@/router";
 
 import "./index.css";
+import { CartProvider } from "./contexts/CartContext";
 
 async function enableMocking(): Promise<void> {
   if (!import.meta.env.DEV) {
@@ -32,7 +33,9 @@ function renderApp(): void {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <CartProvider>
+          <RouterProvider router={router} />
+        </CartProvider>
       </QueryClientProvider>
     </React.StrictMode>,
   );

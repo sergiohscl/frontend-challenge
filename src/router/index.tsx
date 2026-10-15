@@ -8,7 +8,7 @@ import {
 
 import { HomePage } from "@/pages/HomePage/HomePage"
 import { NFTDetailsPage } from "@/pages/NFTDetailsPage/NFTDetailsPage";
-import { CartPage } from "@/pages/CartPage"
+import { CartPage } from "@/pages/CartPage/CartPage"
 
 
 const rootRoute = createRootRoute({
