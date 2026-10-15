@@ -8,6 +8,7 @@ import { useState } from "react";
 import { MobileFilters } from "@/components/Products/MobileFilters";
 import { MobileTabBar } from "@/components/layout/MobileTabBar/MobileTabBar";
 import { Promos } from "@/components/Promos/Promos";
+import { Blog } from "@/components/Blog/Blog";
 import type { PriceRange } from "@/types/priceFilter.types";
 
 import { nftService } from "@/services/nftService";
@@ -120,6 +121,10 @@ export function HomePage() {
 
           <div className="mt-12 lg:mt-20">
             <Promos />
+          </div>
+
+          <div className="mt-20 hidden lg:block">
+            <Blog />
           </div>
         </div>
       </main>
