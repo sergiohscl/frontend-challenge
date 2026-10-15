@@ -6,6 +6,7 @@ import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
 import { MobileSearchBar } from "@/components/layout/MobileSearchBar/MobileSearchBar";
 import { useState } from "react";
 import { MobileFilters } from "@/components/Products/MobileFilters";
+import { MobileTabBar } from "@/components/layout/MobileTabBar/MobileTabBar";
 import type { PriceRange } from "@/types/priceFilter.types";
 
 import { nftService } from "@/services/nftService";
@@ -62,7 +63,7 @@ export function HomePage() {
         }
       />
 
-      <main className="mx-auto w-full max-w-300 px-6 py-8 lg:px-0">
+      <main className="mx-auto w-full max-w-300 px-6 py-8 lg:px-0 lg:pb-8">
         <HeroBanner
           eyebrow="Bem-vindo à Kurio"
           title="SEJA DONO DO FUTURO DA ARTE DIGITAL"
@@ -117,6 +118,8 @@ export function HomePage() {
           )}
         </div>
       </main>
+
+      <MobileTabBar/>
     </div>
   );
 }
