@@ -6,7 +6,7 @@ import {
   Outlet,
 } from "@tanstack/react-router"
 
-import { HomePage } from "@/pages/HomePage"
+import { HomePage } from "@/pages/HomePage/HomePage"
 import { NFTDetailsPage } from "@/pages/NFTDetailsPage"
 import { CartPage } from "@/pages/CartPage"
 
