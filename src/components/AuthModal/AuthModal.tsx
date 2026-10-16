@@ -1,21 +1,30 @@
+
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+
 import { Eye, EyeOff, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+
 import { useAuth } from "@/hooks/useAuth";
+
+type AuthMode = "login" | "register";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMode?: AuthMode;
 }
 
-type AuthMode = "login" | "register";
-
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({
+  isOpen,
+  onClose,
+  initialMode = "login",
+}: AuthModalProps) {
   const navigate = useNavigate();
   const { login, register } = useAuth();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -25,11 +34,25 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [feedback, setFeedback] = useState("");
 
+  // Sincroniza a aba inicial com a URL / propriedade.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setMode(initialMode);
+    setFeedback("");
+    setPassword("");
+    setConfirmPassword("");
+    setShowPassword(false);
+  }, [isOpen, initialMode]);
+
+  // Permite fechar o modal com ESC.
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSubmitting) onClose();
+      if (event.key === "Escape" && !isSubmitting) {
+        onClose();
+      }
     };
 
     document.addEventListener("keydown", handleEscape);
@@ -39,9 +62,21 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     };
   }, [isOpen, onClose, isSubmitting]);
 
-  if (!isOpen) return null;
+  // Bloqueia a rolagem do conteúdo atrás do modal.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   const changeMode = (nextMode: AuthMode) => {
+    if (isSubmitting) return;
+
     setMode(nextMode);
     setFeedback("");
     setPassword("");
@@ -49,13 +84,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setShowPassword(false);
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
+
     if (isSubmitting) return;
 
     setFeedback("");
 
-    if (mode === "register" && password !== confirmPassword) {
+    if (
+      mode === "register" &&
+      password !== confirmPassword
+    ) {
       setFeedback("As senhas não coincidem.");
       return;
     }
@@ -71,13 +112,25 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           confirmPassword,
         });
       } else {
-        await login({ email: email.trim(), password });
+        await login({
+          email: email.trim(),
+          password,
+        });
       }
 
+      setUsername("");
+      setEmail("");
       setPassword("");
       setConfirmPassword("");
+      setFeedback("");
+
       onClose();
-      await navigate({ to: "/" });
+
+      await navigate({
+        to: "/",
+        search: {},
+        replace: true,
+      });
     } catch (error) {
       setFeedback(
         error instanceof Error
@@ -92,11 +145,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const inputClass =
     "h-10 w-full rounded-md border border-[#45271C] bg-transparent px-4 text-sm text-[#F5F1EB] outline-none placeholder:text-[#B39463] focus:border-[#D18A4D]";
 
+  if (!isOpen) return null;
+
   return (
     <div
       className="fixed inset-0 z-100 flex items-center justify-center bg-black/75 px-4 py-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !isSubmitting) onClose();
+        if (
+          event.target === event.currentTarget &&
+          !isSubmitting
+        ) {
+          onClose();
+        }
       }}
     >
       <section
@@ -111,7 +171,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           onClick={onClose}
           disabled={isSubmitting}
           aria-label="Fechar"
-          className="absolute top-3 right-3 text-[#D18A4D] transition-opacity hover:opacity-70"
+          className="absolute top-3 right-3 text-[#D18A4D] transition-opacity hover:opacity-70 disabled:opacity-50"
         >
           <X size={19} strokeWidth={1.5} />
         </button>
@@ -125,7 +185,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             type="button"
             onClick={() => changeMode("login")}
             disabled={isSubmitting}
-            className={mode === "login" ? "text-[#D18A4D]" : "text-[#F5F1EB]"}
+            className={
+              mode === "login"
+                ? "text-[#D18A4D]"
+                : "text-[#F5F1EB]"
+            }
           >
             Entrar
           </button>
@@ -137,7 +201,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             onClick={() => changeMode("register")}
             disabled={isSubmitting}
             className={
-              mode === "register" ? "text-[#D18A4D]" : "text-[#F5F1EB]"
+              mode === "register"
+                ? "text-[#D18A4D]"
+                : "text-[#F5F1EB]"
             }
           >
             Criar conta
@@ -152,14 +218,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </p>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-          {/* Nome de usuário: somente cadastro */}
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 flex flex-col gap-3"
+        >
+          {/* Nome de usuário */}
           {mode === "register" && (
             <input
               type="text"
               name="username"
               value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              onChange={(event) =>
+                setUsername(event.target.value)
+              }
               placeholder="Nome de usuário"
               aria-label="Nome de usuário"
               autoComplete="username"
@@ -173,9 +244,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             type="email"
             name="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) =>
+              setEmail(event.target.value)
+            }
             placeholder={
-              mode === "register" ? "Digite seu e-mail" : "contato@email.com"
+              mode === "register"
+                ? "Digite seu e-mail"
+                : "contato@email.com"
             }
             aria-label="E-mail"
             autoComplete="email"
@@ -189,34 +264,56 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               type={showPassword ? "text" : "password"}
               name="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === "register" ? "Senha" : "************"}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
+              placeholder={
+                mode === "register"
+                  ? "Senha"
+                  : "************"
+              }
               aria-label="Senha"
               autoComplete={
-                mode === "login" ? "current-password" : "new-password"
+                mode === "login"
+                  ? "current-password"
+                  : "new-password"
               }
-              minLength={mode === "register" ? 6 : undefined}
+              minLength={
+                mode === "register" ? 6 : undefined
+              }
               required
               className={`${inputClass} pr-12`}
             />
 
             <button
               type="button"
-              onClick={() => setShowPassword((previous) => !previous)}
-              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() =>
+                setShowPassword((previous) => !previous)
+              }
+              aria-label={
+                showPassword
+                  ? "Ocultar senha"
+                  : "Mostrar senha"
+              }
               className="absolute top-1/2 right-3 -translate-y-1/2 text-[#B39463]"
             >
-              {showPassword ? <Eye size={19} /> : <EyeOff size={19} />}
+              {showPassword ? (
+                <Eye size={19} />
+              ) : (
+                <EyeOff size={19} />
+              )}
             </button>
           </div>
 
-          {/* Confirmar senha: somente cadastro */}
+          {/* Confirmar senha */}
           {mode === "register" && (
             <input
               type={showPassword ? "text" : "password"}
               name="confirmPassword"
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(event) =>
+                setConfirmPassword(event.target.value)
+              }
               placeholder="Confirmar senha"
               aria-label="Confirmar senha"
               autoComplete="new-password"
@@ -226,12 +323,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             />
           )}
 
-          {/* Recuperar senha: somente login */}
+          {/* Recuperar senha */}
           {mode === "login" && (
             <button
               type="button"
               onClick={() =>
-                setFeedback("Recuperação de senha ainda não disponível.")
+                setFeedback(
+                  "Recuperação de senha ainda não disponível.",
+                )
               }
               className="self-end text-sm text-[#D18A4D] hover:underline"
             >
@@ -255,7 +354,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             disabled={isSubmitting}
             className="mt-3 h-11 w-full rounded-md bg-[#D18A4D] text-base font-bold text-[#140D0A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
+            {isSubmitting
+              ? "Aguarde..."
+              : mode === "login"
+                ? "Entrar"
+                : "Criar conta"}
           </button>
         </form>
 
@@ -263,7 +366,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-[#45271C]" />
 
-          <span className="whitespace-nowrap text-xs">Ou continue com</span>
+          <span className="whitespace-nowrap text-xs">
+            Ou continue com
+          </span>
 
           <div className="h-px flex-1 bg-[#45271C]" />
         </div>
@@ -273,7 +378,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <button
             type="button"
             onClick={() =>
-              setFeedback("Login com Google ainda não disponível.")
+              setFeedback(
+                "Login com Google ainda não disponível.",
+              )
             }
             className="flex h-10 items-center justify-center gap-3 rounded-md border border-[#45271C] text-sm text-[#CFB28C] transition-colors hover:border-[#D18A4D]"
           >
@@ -290,11 +397,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <button
             type="button"
             onClick={() =>
-              setFeedback("Login com Facebook ainda não disponível.")
+              setFeedback(
+                "Login com Facebook ainda não disponível.",
+              )
             }
             className="flex h-10 items-center justify-center gap-3 rounded-md border border-[#45271C] text-sm text-[#CFB28C] transition-colors hover:border-[#D18A4D]"
           >
-            <span className="text-xl font-bold text-[#4267B2]">f</span>
+            <span className="text-xl font-bold text-[#4267B2]">
+              f
+            </span>
+
             Continuar com Facebook
           </button>
         </div>

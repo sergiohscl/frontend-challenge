@@ -1,4 +1,3 @@
-
 import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
 import { ProfileSidebar } from "@/components/Profile/ProfileSidebar";
 import { WalletsForm } from "@/components/Profile/WalletsForm";

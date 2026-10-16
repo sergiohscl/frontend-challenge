@@ -14,7 +14,7 @@ import { NFTMobileDetails } from "@/components/NFTMobileDetails/NFTMobileDetails
 
 export function NFTDetailsPage() {
   const { id } = useParams({
-    from: "/nft/$id",
+    from: "/protected/nft/$id",
   });
 
   const navigate = useNavigate();

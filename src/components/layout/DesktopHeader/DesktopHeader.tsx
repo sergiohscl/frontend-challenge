@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ChevronDown, LogOut, Search, ShoppingCart, UserRound } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  Search,
+  ShoppingCart,
+  UserRound,
+} from "lucide-react";
 
 import { AuthModal } from "@/components/AuthModal/AuthModal";
 import { useCart } from "@/contexts/CartContext";
@@ -21,7 +27,6 @@ export function DesktopHeader() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
@@ -30,6 +35,29 @@ export function DesktopHeader() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+
+  const authMode = useRouterState({
+    select: (state) => {
+      const search = state.location.search as {
+        auth?: "login" | "register";
+      };
+
+      return search.auth;
+    },
+  });
+
+  const isAuthModalOpen =
+    pathname === "/" &&
+    !isAuthenticated &&
+    (authMode === "login" || authMode === "register");
+
+  const closeAuthModal = () => {
+    void navigate({
+      to: "/",
+      search: {},
+      replace: true,
+    });
+  };
 
   useEffect(() => {
     if (!isUserMenuOpen) return;
@@ -140,7 +168,10 @@ export function DesktopHeader() {
             </Link>
 
             {isLoading ? (
-              <div className="h-9 w-25 animate-pulse rounded-md bg-[#45271C]" aria-label="Carregando sessão" />
+              <div
+                className="h-9 w-25 animate-pulse rounded-md bg-[#45271C]"
+                aria-label="Carregando sessão"
+              />
             ) : isAuthenticated && user ? (
               <div ref={menuRef} className="relative font-mono">
                 <button
@@ -165,8 +196,12 @@ export function DesktopHeader() {
                     className="absolute top-full right-0 z-50 mt-2 w-64 border border-[#45271C] bg-[#241612] p-3 text-[#F5F1EB] shadow-[0_0_20px_0_#0A060473]"
                   >
                     <div className="border-b border-[#45271C] px-2 pb-3">
-                      <p className="truncate text-sm font-bold">{user.displayName}</p>
-                      <p className="truncate text-xs text-[#CFB28C]">{user.email}</p>
+                      <p className="truncate text-sm font-bold">
+                        {user.displayName}
+                      </p>
+                      <p className="truncate text-xs text-[#CFB28C]">
+                        {user.email}
+                      </p>
                     </div>
                     <Link
                       to="/profile"
@@ -191,7 +226,12 @@ export function DesktopHeader() {
             ) : (
               <button
                 type="button"
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={() => {
+                  void navigate({
+                    to: "/",
+                    search: { auth: "login" },
+                  });
+                }}
                 aria-haspopup="dialog"
                 aria-expanded={isAuthModalOpen}
                 className="rounded-md border border-primary px-5 py-2 font-mono text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-[#140D0A]"
@@ -203,11 +243,16 @@ export function DesktopHeader() {
         </div>
       </header>
 
-      {logoutError && <p role="alert" className="sr-only">{logoutError}</p>}
+      {logoutError && (
+        <p role="alert" className="sr-only">
+          {logoutError}
+        </p>
+      )}
 
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={closeAuthModal}
+        initialMode={authMode === "register" ? "register" : "login"}
       />
     </>
   );
