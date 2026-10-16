@@ -5,9 +5,9 @@ import { RouterProvider } from "@tanstack/react-router";
 
 import { queryClient } from "@/lib/queryClient";
 import { router } from "@/router";
+import { CartProvider } from "@/contexts/CartContext";
 
 import "./index.css";
-import { CartProvider } from "./contexts/CartContext";
 
 async function enableMocking(): Promise<void> {
   if (!import.meta.env.DEV) {

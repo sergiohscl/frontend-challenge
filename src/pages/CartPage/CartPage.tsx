@@ -68,6 +68,9 @@ export function CartPage() {
               networkFee={networkFee}
               total={total}
               disabled={items.length === 0}
+              onCheckout={() => {
+                void navigate({ to: "/checkout" });
+              }}
             />
           </div>
         </main>
@@ -119,6 +122,9 @@ export function CartPage() {
                 type="button"
                 disabled={items.length === 0}
                 className="mt-4 w-full rounded bg-[#D48B4B] px-4 py-3 text-sm font-bold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => {
+                  void navigate({ to: "/checkout" });
+                }}
               >
                 Conectar e finalizar
               </button>
