@@ -6,12 +6,10 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 
-// Rota principal
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 });
 
-// Home
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
@@ -22,7 +20,6 @@ const homeRoute = createRoute({
   ),
 });
 
-// Detalhes do NFT
 const nftDetailsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/nft/$id",
@@ -33,7 +30,6 @@ const nftDetailsRoute = createRoute({
   ),
 });
 
-// Carrinho
 const cartRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/cart",
@@ -44,7 +40,6 @@ const cartRoute = createRoute({
   ),
 });
 
-// Checkout
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/checkout",
@@ -55,7 +50,6 @@ const checkoutRoute = createRoute({
   ),
 });
 
-// Autenticação - Login e Cadastro
 const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth",
@@ -66,22 +60,30 @@ const authRoute = createRoute({
   ),
 });
 
-// Árvore de rotas
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile",
+  component: lazyRouteComponent(() =>
+    import("@/pages/ProfilePage/ProfilePage").then((module) => ({
+      default: module.ProfilePage,
+    })),
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   nftDetailsRoute,
   cartRoute,
   checkoutRoute,
   authRoute,
+  profileRoute,
 ]);
 
-// Router
 export const router = createRouter({
   routeTree,
   defaultPreload: false,
 });
 
-// Tipagem do TanStack Router
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
