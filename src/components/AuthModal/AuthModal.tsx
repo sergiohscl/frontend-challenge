@@ -77,7 +77,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setPassword("");
       setConfirmPassword("");
       onClose();
-      await navigate({ to: "/profile" });
+      await navigate({ to: "/" });
     } catch (error) {
       setFeedback(
         error instanceof Error

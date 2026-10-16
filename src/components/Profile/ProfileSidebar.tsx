@@ -1,3 +1,7 @@
+
+import { useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+
 import {
   UserRound,
   MapPin,
@@ -9,7 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   {
@@ -45,6 +49,11 @@ const menuItems = [
 ] as const;
 
 export function ProfileSidebar() {
+  const navigate = useNavigate();
+  const { logout, isAuthenticated } = useAuth();
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -57,6 +66,21 @@ export function ProfileSidebar() {
 
   const inactiveClass =
     "border-l-6 border-transparent text-[#D18A4D] hover:bg-[#291914]";
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Erro ao encerrar sessão:", error);
+    } finally {
+      setIsLoggingOut(false);
+      await navigate({ to: "/" });
+    }
+  };
 
   return (
     <aside className="w-full bg-[#241612] font-mono text-[#D18A4D]">
@@ -71,10 +95,8 @@ export function ProfileSidebar() {
           const Icon = item.icon;
 
           const href = "href" in item ? item.href : undefined;
-
           const isActive = href === pathname;
 
-          // Itens com rotas implementadas
           if (href === "/profile" || href === "/profile/wallets") {
             return (
               <Link
@@ -86,38 +108,37 @@ export function ProfileSidebar() {
                 }`}
               >
                 <Icon size={18} strokeWidth={1.5} />
-
                 <span>{item.label}</span>
               </Link>
             );
           }
 
-          // Funcionalidades futuras
           return (
             <div
               key={item.label}
               aria-disabled="true"
-              className={`${baseClass} border-l-6 border-transparent opacity-70`}
               title="Funcionalidade em desenvolvimento"
+              className={`${baseClass} border-l-6 border-transparent opacity-70`}
             >
               <Icon size={18} strokeWidth={1.5} />
-
               <span>{item.label}</span>
             </div>
           );
         })}
 
-        {/* Sair */}
+        {/* Logout */}
         <div className="mt-1 border-t border-[#45271C]">
           <button
             type="button"
-            disabled
-            title="Disponível após a implementação da autenticação"
-            className="flex h-12 w-full cursor-not-allowed items-center gap-4 px-4 text-left text-sm font-bold opacity-60"
+            onClick={() => void handleLogout()}
+            disabled={!isAuthenticated || isLoggingOut}
+            className="flex h-12 w-full items-center gap-4 px-4 text-left text-sm font-bold transition-colors hover:bg-[#291914] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogOut size={18} strokeWidth={1.5} />
 
-            <span>Sair</span>
+            <span>
+              {isLoggingOut ? "Saindo..." : "Sair"}
+            </span>
           </button>
         </div>
       </nav>
