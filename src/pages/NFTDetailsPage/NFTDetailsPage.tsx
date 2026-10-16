@@ -19,7 +19,10 @@ export function NFTDetailsPage() {
 
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const [addedQuantity, setAddedQuantity] = useState<number | null>(null);
+  const [cartConfirmation, setCartConfirmation] = useState<{
+    nftId: string;
+    quantity: number;
+  } | null>(null);
 
   // NFT selecionado
   const {
@@ -66,8 +69,16 @@ export function NFTDetailsPage() {
       quantity,
     });
 
-    setAddedQuantity(quantity);
+    setCartConfirmation({
+      nftId: String(nft.id),
+      quantity,
+    });
   };
+
+  const addedQuantity =
+    cartConfirmation?.nftId === String(nft?.id)
+      ? cartConfirmation.quantity
+      : null;
 
   return (
     <div className="min-h-screen bg-[#140D0A]">
@@ -109,9 +120,15 @@ export function NFTDetailsPage() {
             {/* Versão mobile */}
             <div className="lg:hidden">
               <NFTMobileDetails
+                key={nft.id}
                 nft={nft}
                 onBack={() => {
                   void navigate({ to: "/" });
+                }}
+                onAddToCart={handleAddToCart}
+                addedQuantity={addedQuantity}
+                onViewCart={() => {
+                  void navigate({ to: "/cart" });
                 }}
               />
             </div>
