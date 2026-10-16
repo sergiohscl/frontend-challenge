@@ -1,3 +1,191 @@
+# KURIO — Frontend Challenge
+
+Marketplace de colecionáveis digitais (NFTs), desenvolvido com **React, TypeScript, Vite, Tailwind CSS, TanStack Router, TanStack Query e Mock Service Worker (MSW)**. A interface foi construída a partir das referências do Figma, com layouts desktop e mobile.
+
+> **Escopo:** aplicação demonstrativa. Autenticação, perfil e carteiras usam APIs simuladas pelo MSW e dados armazenados no navegador. Não há backend de produção, conexão real com blockchain ou processamento de pagamentos reais.
+
+## Requisitos e setup
+
+- Node.js e npm instalados (recomenda-se uma versão LTS compatível com as dependências do projeto).
+- Navegador moderno com suporte a Service Workers e `localStorage`.
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd frontend-challenge
+npm install
+npm run dev
+```
+
+Abra a URL informada pelo Vite (normalmente `http://localhost:5173`). Substitua `<URL_DO_REPOSITORIO>` pela URL real do repositório.
+
+## Comandos
+
+```bash
+npm run dev      # servidor de desenvolvimento
+npm run build    # verificação TypeScript e build de produção
+npm run lint     # análise estática com ESLint
+npm run preview  # visualização local do build
+```
+
+## Variáveis de ambiente
+
+**Não são necessárias variáveis de ambiente para os fluxos simulados documentados aqui.** O MSW é inicializado em modo de desenvolvimento (`import.meta.env.DEV`) e intercepta requisições relativas a `/api/...`.
+
+Não é necessário configurar chaves de API, wallet privada ou credenciais reais. Não inclua segredos em arquivos `.env` versionados. O build de produção, por si só, **não** disponibiliza a API simulada: para testar os fluxos abaixo, utilize `npm run dev`.
+
+## Credenciais fictícias
+
+Para garantir uma conta de teste reproduzível sem depender dos usuários pré-carregados, utilize o fluxo **Cadastrar** na interface:
+
+| Campo | Valor de exemplo |
+|---|---|
+| Nome de usuário | `avaliador` |
+| Nome de exibição | `Avaliador Kurio` |
+| E-mail | `avaliador@example.com` |
+| Senha | `Teste@123456` |
+| Confirmar senha | `Teste@123456` |
+
+Esses dados **não são credenciais pré-instaladas**: cadastre-os uma vez e depois faça login. Caso o e-mail já exista no seu navegador, use outro e-mail fictício ou faça o reset descrito abaixo. A senha é armazenada apenas para simulação local; não utilize uma senha real.
+
+## Cenários: seleção e reset
+
+O projeto disponibiliza cenários por **ações na interface e requisições à API simulada**. Não há confirmação de um painel dedicado de seleção de cenários ou de um mecanismo de injeção de falhas. Para selecionar um cenário, siga os passos da seção seguinte.
+
+### Reset completo do ambiente de testes
+
+1. Abra a aplicação em `http://localhost:5173`.
+2. Pressione **F12 → Console**.
+3. Execute o código abaixo e recarregue a página:
+
+```js
+[
+  "kurio-mock-users",
+  "kurio-mock-sessions",
+  "kurio-mock-wallets",
+  "kurio-token",
+  "kurio-user",
+  "kurio-cart",
+].forEach((key) => localStorage.removeItem(key));
+location.reload();
+```
+
+O reset remove contas criadas localmente, sessões, carteiras e carrinho armazenados nessas chaves. Os usuários iniciais do mock, quando disponíveis, voltam a ser utilizados após a remoção de `kurio-mock-users`. Não é necessário apagar o Service Worker para limpar esses dados.
+
+### Reset isolado
+
+```js
+localStorage.removeItem("kurio-mock-wallets"); // somente carteiras
+localStorage.removeItem("kurio-cart");         // somente carrinho
+location.reload();
+```
+
+## Como reproduzir os fluxos principais
+
+1. **Autenticação:** abra a página inicial, clique em **Entrar**, cadastre a conta fictícia e efetue login.
+2. **Perfil:** acesse **Meu perfil**, edite nome, apelido, e-mail ou avatar e salve. Atualize a página para verificar a persistência.
+3. **Carteiras:** acesse **Meu perfil → Carteiras**, preencha os campos obrigatórios e salve. Use um endereço EVM **fictício** como `0x1111111111111111111111111111111111111111`. Verifique listagem, edição, exclusão e persistência após F5.
+4. **Navegação e NFTs:** navegue pela vitrine e abra os detalhes dos colecionáveis. Carrinho e checkout são fluxos demonstrativos, não transações reais.
+
+## Reprodução de fluxos de falha
+
+Abra **DevTools → Network → Fetch/XHR** para inspecionar método, URL, status e resposta. Os exemplos abaixo podem ser executados no **Console** do navegador enquanto `npm run dev` está ativo.
+
+### 1. Login inválido
+
+```js
+const r = await fetch("/api/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: "inexistente@example.com", password: "senha-errada" }),
+});
+console.log(r.status, await r.json());
+```
+
+**Esperado:** falha de autenticação; nenhuma sessão válida é criada.
+
+### 2. Acesso a carteiras sem autenticação (401)
+
+```js
+const r = await fetch("/api/wallets");
+console.log(r.status, await r.json());
+```
+
+**Esperado:** `401` e mensagem de sessão inválida.
+
+### 3. Endereço de carteira inválido (400)
+
+Faça login e execute:
+
+```js
+const token = localStorage.getItem("kurio-token");
+const wallet = {
+  displayName: "Teste", walletNickname: "Falha", network: "ethereum",
+  profileName: "Avaliador", walletAddress: "endereco-invalido",
+  secondaryAddress: "", walletType: "metamask", referralCode: "01",
+  email: "avaliador@example.com", ensName: "teste", sameAsPrimary: false,
+};
+const r = await fetch("/api/wallets", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  body: JSON.stringify(wallet),
+});
+console.log(r.status, await r.json());
+```
+
+**Esperado:** `400` com mensagem de endereço inválido.
+
+### 4. Carteira duplicada (409)
+
+Com login ativo, altere `wallet.walletAddress` para `0x1111111111111111111111111111111111111111` e execute o POST acima **duas vezes**, com a mesma rede. **Esperado:** primeira criação `201` (desde que não exista anteriormente), segunda `409`.
+
+### 5. Carteira inexistente (404)
+
+```js
+const token = localStorage.getItem("kurio-token");
+const r = await fetch("/api/wallets/id-inexistente", {
+  method: "DELETE",
+  headers: { Authorization: `Bearer ${token}` },
+});
+console.log(r.status, await r.json());
+```
+
+**Esperado:** `404` com mensagem de carteira não encontrada.
+
+### 6. Sessão inválida (401)
+
+```js
+const r = await fetch("/api/wallets", {
+  headers: { Authorization: "Bearer token-ficticio-invalido" },
+});
+console.log(r.status, await r.json());
+```
+
+**Esperado:** `401`.
+
+> Para evitar conflitos de declaração no Console, execute cada exemplo separadamente; se necessário, use outro nome de variável ou recarregue a página. Não use endereços de carteiras ou senhas reais nos testes.
+
+## Persistência e limitações
+
+- **MSW:** intercepta as rotas mockadas `/api/auth/...`, `/api/users/me`, `/api/wallets` e `/api/nfts...` durante o desenvolvimento.
+- **localStorage:** guarda sessão, perfil e carteiras no navegador, não em um servidor remoto.
+- **Segurança:** tokens e senhas simulados não representam uma solução segura de autenticação para produção.
+- **Blockchain:** o cadastro de endereços não comprova posse da carteira e não realiza transações on-chain.
+- **Cenários de erro:** os exemplos reproduzem validações e respostas de erro existentes na API mockada; não há simulação garantida de indisponibilidade de rede ou latência artificial.
+
+## Checklist de entrega
+
+```bash
+npm run build
+npm run lint
+git status
+git add README.md
+git commit -m "docs: document setup, mock scenarios and failure flows"
+git push origin main
+```
+
+**Observação:** este README descreve as funcionalidades implementadas e verificadas no desenvolvimento. Ajuste a URL do repositório e confira os scripts do `package.json` antes da entrega final.
+
+
 # Desafio Frontend — Marketplace de NFTs
 
 Implemente o **NFT Marketplace** em React e TypeScript, seguindo o [layout no Figma](https://www.figma.com/design/Ff0SksUi7UFtPWUO8kyNtw/Frontend-Challenge?node-id=0-1).
