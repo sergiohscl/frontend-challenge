@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-
+import { useState } from "react";
+import { useCart } from "@/contexts/CartContext";
 import { nftService } from "@/services/nftService";
 
 import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
@@ -9,7 +10,6 @@ import { NFTGallery } from "@/components/NFTGallery/NFTGallery";
 import { NFTDetails } from "@/components/NFTDetails/NFTDetails";
 import { NFTDescription } from "@/components/NFTDescription/NFTDescription";
 import { RelatedProducts } from "@/components/RelatedProducts/RelatedProducts";
-
 import { NFTMobileDetails } from "@/components/NFTMobileDetails/NFTMobileDetails";
 
 export function NFTDetailsPage() {
@@ -18,6 +18,8 @@ export function NFTDetailsPage() {
   });
 
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const [addedQuantity, setAddedQuantity] = useState<number | null>(null);
 
   // NFT selecionado
   const {
@@ -36,9 +38,14 @@ export function NFTDetailsPage() {
     queryFn: nftService.getAll,
   });
 
-  // NFTs da mesma coleção, excluindo o atual
-  const relatedNFTs = nft ? allNFTs.filter((item) => item.id !== nft.id) : [];
+  // NFTs relacionados
+  const relatedNFTs = nft
+    ? allNFTs.filter(
+        (item) => item.id !== nft.id && item.collection === nft.collection,
+      )
+    : [];
 
+  // Navegação entre NFTs
   const handleRelatedProductClick = (productId: string) => {
     void navigate({
       to: "/nft/$id",
@@ -46,8 +53,25 @@ export function NFTDetailsPage() {
     });
   };
 
+  // Adicionar NFT ao carrinho
+  const handleAddToCart = (quantity: number) => {
+    if (!nft) return;
+
+    addItem({
+      id: String(nft.id),
+      name: nft.name,
+      tokenId: `#${String(nft.id).padStart(4, "0")}`,
+      image: nft.image,
+      price: nft.price,
+      quantity,
+    });
+
+    setAddedQuantity(quantity);
+  };
+
   return (
     <div className="min-h-screen bg-[#140D0A]">
+      {/* Header */}
       <DesktopHeader />
 
       <main className="mx-auto w-full max-w-300 px-4 py-6 lg:px-0">
@@ -92,8 +116,8 @@ export function NFTDetailsPage() {
               />
             </div>
 
-            {/* Galeria e detalhes */}
-           <div
+            {/* Galeria e detalhes desktop */}
+            <div
               className="
                 hidden grid-cols-1 items-start gap-8
                 lg:grid
@@ -115,6 +139,11 @@ export function NFTDetailsPage() {
                   collection={nft.collection ?? "Coleção não informada"}
                   attributes={[]}
                   editions={[]}
+                  onAddToCart={handleAddToCart}
+                  addedQuantity={addedQuantity}
+                  onViewCart={() => {
+                    void navigate({ to: "/cart" });
+                  }}
                 />
               </div>
             </div>
@@ -129,7 +158,7 @@ export function NFTDetailsPage() {
               />
             </section>
 
-            {/* Mais desta coleção */}
+            {/* Produtos relacionados */}
             {relatedNFTs.length > 0 && (
               <section className="mt-12 w-full min-w-0">
                 <RelatedProducts
@@ -142,6 +171,7 @@ export function NFTDetailsPage() {
         )}
       </main>
 
+      {/* Footer */}
       <Footer />
     </div>
   );

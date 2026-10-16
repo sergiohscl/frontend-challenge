@@ -1,7 +1,7 @@
-
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   type ReactNode,
@@ -9,6 +9,8 @@ import {
 
 import type { CartNFT } from "@/components/DesktopCartNFTs";
 import { cartItems } from "@/mocks/data/cartItem";
+
+const CART_STORAGE_KEY = "kurio-cart";
 
 type CartAction =
   | { type: "SET_ITEMS"; payload: CartNFT[] }
@@ -35,6 +37,46 @@ const CartContext = createContext<CartContextType | undefined>(
   undefined,
 );
 
+// Carrega os dados persistidos
+function loadCart(): CartNFT[] {
+  if (typeof window === "undefined") {
+    return cartItems;
+  }
+
+  try {
+    const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+
+    // Primeira visita: utiliza os mocks
+    if (storedCart === null) {
+      return cartItems;
+    }
+
+    const parsed: unknown = JSON.parse(storedCart);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      (item): item is CartNFT =>
+        typeof item === "object" &&
+        item !== null &&
+        typeof item.id === "string" &&
+        typeof item.name === "string" &&
+        typeof item.tokenId === "string" &&
+        typeof item.image === "string" &&
+        typeof item.price === "number" &&
+        Number.isFinite(item.price) &&
+        item.price >= 0 &&
+        typeof item.quantity === "number" &&
+        Number.isInteger(item.quantity) &&
+        item.quantity >= 1,
+    );
+  } catch {
+    return [];
+  }
+}
+
 function cartReducer(
   state: CartNFT[],
   action: CartAction,
@@ -44,11 +86,11 @@ function cartReducer(
       return action.payload;
 
     case "ADD_ITEM": {
-      const existing = state.find(
+      const existingItem = state.find(
         (item) => item.id === action.payload.id,
       );
 
-      if (existing) {
+      if (existingItem) {
         return state.map((item) =>
           item.id === action.payload.id
             ? {
@@ -92,8 +134,21 @@ export function CartProvider({
 }) {
   const [items, dispatch] = useReducer(
     cartReducer,
-    cartItems,
+    undefined,
+    loadCart,
   );
+
+  // Salva sempre que o carrinho mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        CART_STORAGE_KEY,
+        JSON.stringify(items),
+      );
+    } catch (error) {
+      console.error("Erro ao salvar carrinho:", error);
+    }
+  }, [items]);
 
   const cartCount = useMemo(
     () =>
@@ -119,14 +174,23 @@ export function CartProvider({
       cartCount,
       subtotal,
 
-      setItems: (items) =>
-        dispatch({ type: "SET_ITEMS", payload: items }),
+      setItems: (updatedItems) =>
+        dispatch({
+          type: "SET_ITEMS",
+          payload: updatedItems,
+        }),
 
       addItem: (item) =>
-        dispatch({ type: "ADD_ITEM", payload: item }),
+        dispatch({
+          type: "ADD_ITEM",
+          payload: item,
+        }),
 
       removeItem: (id) =>
-        dispatch({ type: "REMOVE_ITEM", payload: id }),
+        dispatch({
+          type: "REMOVE_ITEM",
+          payload: id,
+        }),
 
       updateQuantity: (id, quantity) =>
         dispatch({
@@ -135,7 +199,9 @@ export function CartProvider({
         }),
 
       clearCart: () =>
-        dispatch({ type: "CLEAR_CART" }),
+        dispatch({
+          type: "CLEAR_CART",
+        }),
     }),
     [items, cartCount, subtotal],
   );
