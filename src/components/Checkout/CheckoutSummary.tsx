@@ -2,11 +2,15 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 
+interface CheckoutSummaryProps {
+  onConfirm?: () => void;
+}
+
 const NETWORK_FEE = 0.016;
 
 type WalletType = "metamask" | "walletconnect" | "coinbase";
 
-export function CheckoutSummary() {
+export function CheckoutSummary({ onConfirm }: CheckoutSummaryProps) {
   const { items, subtotal } = useCart();
 
   const [wallet, setWallet] = useState<WalletType>("coinbase");
@@ -23,6 +27,19 @@ export function CheckoutSummary() {
         ? "Código promocional ainda não disponível."
         : "Digite um código promocional.",
     );
+  };
+
+  const handleConfirm = () => {
+    if (items.length === 0) return;
+
+    const form = document.getElementById("checkout-form");
+
+    if (form instanceof HTMLFormElement) {
+      form.requestSubmit();
+      return;
+    }
+
+    onConfirm?.();
   };
 
   return (
@@ -87,6 +104,7 @@ export function CheckoutSummary() {
         </button>
 
         <input
+          type="text"
           value={promoCode}
           onChange={(event) => {
             setPromoCode(event.target.value);
@@ -98,7 +116,10 @@ export function CheckoutSummary() {
         />
 
         {promoMessage && (
-          <p role="status" className="mt-1 text-xs text-[#CFB28C]">
+          <p
+            role="status"
+            className="mt-1 text-xs text-[#CFB28C]"
+          >
             {promoMessage}
           </p>
         )}
@@ -172,11 +193,12 @@ export function CheckoutSummary() {
         </div>
       </div>
 
+      {/* Confirmar compra */}
       <button
-        type="submit"
-        form="checkout-form"
+        type="button"
+        onClick={handleConfirm}
         disabled={items.length === 0}
-        className="mt-5 h-11 w-full rounded-md bg-primary font-bold text-[#140D0A] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-5 h-11 w-full rounded-md bg-primary font-bold text-[#140D0A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Confirmar compra
       </button>
