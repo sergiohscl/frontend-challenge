@@ -1,4 +1,3 @@
-
 import {
   createRootRoute,
   createRoute,
@@ -56,12 +55,24 @@ const checkoutRoute = createRoute({
   ),
 });
 
+// Autenticação - Login e Cadastro
+const authRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auth",
+  component: lazyRouteComponent(() =>
+    import("@/pages/AuthPage/AuthPage").then((module) => ({
+      default: module.AuthPage,
+    })),
+  ),
+});
+
 // Árvore de rotas
 const routeTree = rootRoute.addChildren([
   homeRoute,
   nftDetailsRoute,
   cartRoute,
   checkoutRoute,
+  authRoute,
 ]);
 
 // Router
