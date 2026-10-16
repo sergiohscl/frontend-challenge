@@ -1,7 +1,10 @@
-
 import { useMemo } from "react";
 
 import { useCart } from "@/contexts/CartContext";
+import { useNavigate } from "@tanstack/react-router";
+
+import { MobileCartNFTs } from "@/components/MobileCartNFTs/MobileCartNFTs";
+import { MobileCartSummary } from "@/components/MobileCartSummary/MobileCartSummary";
 
 import { DesktopCartNFTs } from "@/components/DesktopCartNFTs";
 import { DesktopHeader } from "@/components/layout/DesktopHeader/DesktopHeader";
@@ -18,6 +21,8 @@ export function CartPage() {
   // Estado global do carrinho
   const { items, setItems, subtotal } = useCart();
 
+  const navigate = useNavigate();
+
   // Desconto temporário
   const discount = 0;
 
@@ -25,16 +30,11 @@ export function CartPage() {
   const networkFee = items.length > 0 ? NETWORK_FEE : 0;
 
   // Valor final do carrinho
-  const total = Math.max(
-    0,
-    subtotal - discount + networkFee,
-  );
+  const total = Math.max(0, subtotal - discount + networkFee);
 
   // Produtos relacionados conforme o Figma
   const relatedProducts = useMemo(() => {
-    const featured = nfts.filter((nft) =>
-      FEATURED_NFT_IDS.includes(nft.id),
-    );
+    const featured = nfts.filter((nft) => FEATURED_NFT_IDS.includes(nft.id));
 
     const remaining = nfts
       .filter((nft) => !FEATURED_NFT_IDS.includes(nft.id))
@@ -48,14 +48,36 @@ export function CartPage() {
       {/* Header */}
       <DesktopHeader />
 
+      {/* Carrinho mobile */}
+      <div className="lg:hidden">
+        <main className="mx-auto w-full max-w-103.5 rounded-t-[40px] bg-[#170E0B] pt-7">
+          <div className="px-4">
+            <MobileCartNFTs
+              items={items}
+              onCartChange={setItems}
+              onBack={() => {
+                void navigate({ to: "/" });
+              }}
+            />
+          </div>
+
+          <div className="mt-6">
+            <MobileCartSummary
+              subtotal={subtotal}
+              discount={discount}
+              networkFee={networkFee}
+              total={total}
+              disabled={items.length === 0}
+            />
+          </div>
+        </main>
+      </div>
+
       <main className="mx-auto w-full max-w-300 px-4 py-8">
         {/* Carrinho desktop */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-16">
           {/* Lista de NFTs */}
-          <DesktopCartNFTs
-            items={items}
-            onCartChange={setItems}
-          />
+          <DesktopCartNFTs items={items} onCartChange={setItems} />
 
           {/* Resumo da carteira */}
           <aside className="hidden lg:block">
@@ -89,9 +111,7 @@ export function CartPage() {
               {/* Total */}
               <div className="mt-4 flex justify-between border-t border-[#493020] pt-4 font-bold">
                 <span>Total</span>
-                <span className="text-primary">
-                  {total.toFixed(3)} ETH
-                </span>
+                <span className="text-primary">{total.toFixed(3)} ETH</span>
               </div>
 
               {/* Finalizar compra */}
