@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 
 type AuthMode = "login" | "register";
 
@@ -11,7 +13,10 @@ interface MobileAuthProps {
 
 export function MobileAuth({
   initialMode = "login",
+  onClose,
 }: MobileAuthProps) {
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
   const [username, setUsername] = useState("");
@@ -24,6 +29,7 @@ export function MobileAuth({
     useState(false);
 
   const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isRegister = mode === "register";
 
@@ -31,6 +37,7 @@ export function MobileAuth({
     "h-12 w-full rounded-xl border border-[#45271C] bg-transparent px-4 text-sm text-[#F5F1EB] outline-none placeholder:text-[#B39463] focus:border-[#D18A4D]";
 
   const changeMode = (nextMode: AuthMode) => {
+    if (isSubmitting) return;
     setMode(nextMode);
     setFeedback("");
     setPassword("");
@@ -39,19 +46,44 @@ export function MobileAuth({
     setShowConfirmPassword(false);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
+
+    setFeedback("");
 
     if (isRegister && password !== confirmPassword) {
       setFeedback("As senhas não coincidem.");
       return;
     }
 
-    setFeedback(
-      isRegister
-        ? "Cadastro demonstrativo. Integração com backend pendente."
-        : "Login demonstrativo. Integração com backend pendente.",
-    );
+    setIsSubmitting(true);
+
+    try {
+      if (isRegister) {
+        await register({
+          username: username.trim(),
+          email: email.trim(),
+          password,
+          confirmPassword,
+        });
+      } else {
+        await login({ email: email.trim(), password });
+      }
+
+      setPassword("");
+      setConfirmPassword("");
+      onClose?.();
+      await navigate({ to: "/" });
+    } catch (error) {
+      setFeedback(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível autenticar. Tente novamente.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,7 +149,7 @@ export function MobileAuth({
             autoComplete={
               isRegister ? "new-password" : "current-password"
             }
-            minLength={6}
+            minLength={isRegister ? 6 : undefined}
             required
             className={`${inputClass} pr-12 ${
               !isRegister ? "border-[#D18A4D]" : ""
@@ -199,7 +231,7 @@ export function MobileAuth({
         {/* Feedback */}
         {feedback && (
           <p
-            role="status"
+            role="alert"
             className="text-center text-xs text-[#D18A4D]"
           >
             {feedback}
@@ -209,11 +241,10 @@ export function MobileAuth({
         {/* Botão principal */}
         <button
           type="submit"
-          className={`h-15 w-full rounded-xl bg-[#D18A4D] text-base font-bold text-[#140D0A] transition-opacity hover:opacity-90 ${
-            isRegister ? "mt-7" : "mt-7"
-          }`}
+          disabled={isSubmitting}
+          className="mt-7 h-15 w-full rounded-xl bg-[#D18A4D] text-base font-bold text-[#140D0A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isRegister ? "Criar perfil" : "Entrar"}
+          {isSubmitting ? "Aguarde..." : isRegister ? "Criar perfil" : "Entrar"}
         </button>
       </form>
 
@@ -240,7 +271,7 @@ export function MobileAuth({
           <img
             src="/images/nfts/logotipo-google.png"
             alt=""
-            className="h-5 w-5 object-contain"
+            className="h-9 w-9 object-contain"
           />
           Continuar com Google
         </button>

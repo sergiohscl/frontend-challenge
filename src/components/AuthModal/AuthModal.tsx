@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +12,9 @@ interface AuthModalProps {
 type AuthMode = "login" | "register";
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
 
   const [username, setUsername] = useState("");
@@ -24,7 +29,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (!isOpen) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && !isSubmitting) onClose();
     };
 
     document.addEventListener("keydown", handleEscape);
@@ -32,7 +37,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen) return null;
 
@@ -44,24 +49,44 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setShowPassword(false);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
 
-    if (mode === "register") {
-      if (password !== confirmPassword) {
-        setFeedback("As senhas não coincidem.");
-        return;
-      }
+    setFeedback("");
 
-      setFeedback(
-        "Cadastro demonstrativo. A integração com o backend ainda não está disponível.",
-      );
+    if (mode === "register" && password !== confirmPassword) {
+      setFeedback("As senhas não coincidem.");
       return;
     }
 
-    setFeedback(
-      "Login demonstrativo. A integração com o backend ainda não está disponível.",
-    );
+    setIsSubmitting(true);
+
+    try {
+      if (mode === "register") {
+        await register({
+          username: username.trim(),
+          email: email.trim(),
+          password,
+          confirmPassword,
+        });
+      } else {
+        await login({ email: email.trim(), password });
+      }
+
+      setPassword("");
+      setConfirmPassword("");
+      onClose();
+      await navigate({ to: "/profile" });
+    } catch (error) {
+      setFeedback(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível autenticar. Tente novamente.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass =
@@ -71,7 +96,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     <div
       className="fixed inset-0 z-100 flex items-center justify-center bg-black/75 px-4 py-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !isSubmitting) onClose();
       }}
     >
       <section
@@ -84,6 +109,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <button
           type="button"
           onClick={onClose}
+          disabled={isSubmitting}
           aria-label="Fechar"
           className="absolute top-3 right-3 text-[#D18A4D] transition-opacity hover:opacity-70"
         >
@@ -98,6 +124,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <button
             type="button"
             onClick={() => changeMode("login")}
+            disabled={isSubmitting}
             className={mode === "login" ? "text-[#D18A4D]" : "text-[#F5F1EB]"}
           >
             Entrar
@@ -108,6 +135,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <button
             type="button"
             onClick={() => changeMode("register")}
+            disabled={isSubmitting}
             className={
               mode === "register" ? "text-[#D18A4D]" : "text-[#F5F1EB]"
             }
@@ -167,7 +195,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               autoComplete={
                 mode === "login" ? "current-password" : "new-password"
               }
-              minLength={6}
+              minLength={mode === "register" ? 6 : undefined}
               required
               className={`${inputClass} pr-12`}
             />
@@ -214,7 +242,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {/* Feedback */}
           {feedback && (
             <p
-              role="status"
+              role="alert"
               className="text-center text-xs leading-5 text-[#D18A4D]"
             >
               {feedback}
@@ -224,9 +252,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {/* Botão principal */}
           <button
             type="submit"
-            className="mt-3 h-11 w-full rounded-md bg-[#D18A4D] text-base font-bold text-[#140D0A] transition-opacity hover:opacity-90"
+            disabled={isSubmitting}
+            className="mt-3 h-11 w-full rounded-md bg-[#D18A4D] text-base font-bold text-[#140D0A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {mode === "login" ? "Entrar" : "Criar conta"}
+            {isSubmitting ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
           </button>
         </form>
 
