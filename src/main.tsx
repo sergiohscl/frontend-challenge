@@ -13,7 +13,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 import "./index.css";
 
-// Inicializa o MSW apenas em desenvolvimento
 async function enableMocking(): Promise<void> {
   if (!import.meta.env.DEV) {
     return;
@@ -30,7 +29,6 @@ async function enableMocking(): Promise<void> {
   }
 }
 
-// Renderiza a aplicação
 function renderApp(): void {
   const rootElement = document.getElementById("root");
 
@@ -51,5 +49,4 @@ function renderApp(): void {
   );
 }
 
-// Aguarda o MSW antes de renderizar a aplicação
 void enableMocking().then(renderApp);

@@ -182,8 +182,16 @@ export function DesktopHeader() {
                   aria-label={`Menu da conta de ${user.displayName}`}
                   className="flex max-w-48 items-center gap-2 rounded-md border border-primary px-3 py-1.5 text-sm text-primary transition-colors hover:bg-[#291914]"
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#45271C]">
-                    <UserRound size={16} />
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#45271C]">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={`Avatar de ${user.displayName}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <UserRound size={16} />
+                    )}
                   </span>
                   <span className="truncate">{user.displayName}</span>
                   <ChevronDown size={15} className="shrink-0" />
