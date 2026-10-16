@@ -70,6 +70,16 @@ const profileRoute = createRoute({
   ),
 });
 
+const walletsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile/wallets",
+  component: lazyRouteComponent(() =>
+    import("@/pages/ProfilePage/WalletsPage").then((module) => ({
+      default: module.WalletsPage,
+    })),
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   nftDetailsRoute,
@@ -77,6 +87,7 @@ const routeTree = rootRoute.addChildren([
   checkoutRoute,
   authRoute,
   profileRoute,
+  walletsRoute,
 ]);
 
 export const router = createRouter({
